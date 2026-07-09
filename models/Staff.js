@@ -5,6 +5,22 @@ const StaffSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide a name"],
   },
+  username: {
+    type: String,
+    required: [true, "Please provide a username"],
+    unique: true,
+    trim: true,
+  },
+  password: {
+    type: String,
+    required: [true, "Please provide a password"],
+  },
+  email: {
+    type: String,
+  },
+  phone: {
+    type: String,
+  },
   role: {
     type: String,
     required: [true, "Please provide a role"],

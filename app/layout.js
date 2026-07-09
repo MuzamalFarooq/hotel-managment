@@ -1,3 +1,4 @@
+import AuthProvider from "@/context/SessionProvider";
 import { BookingProvider } from "@/context/BookingContext";
 import { StaffProvider } from "@/context/StaffContext";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -25,11 +26,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <BookingProvider>
-          <StaffProvider>
-            {children}
-          </StaffProvider>
-        </BookingProvider>
+        <AuthProvider>
+          <BookingProvider>
+            <StaffProvider>
+              {children}
+            </StaffProvider>
+          </BookingProvider>
+        </AuthProvider>
       </body>
     </html>
   );

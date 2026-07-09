@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 const BookingContext = createContext();
 
@@ -20,11 +21,16 @@ export const BookingProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    fetchRooms();
-    fetchBookings();
-  }, []);
+    if (session?.user) {
+      fetchRooms();
+      if (session.user.role === "General Manager" || session.user.role === "Receptionist") {
+        fetchBookings();
+      }
+    }
+  }, [session]);
 
   const fetchBookings = async () => {
     try {

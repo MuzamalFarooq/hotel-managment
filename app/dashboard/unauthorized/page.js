@@ -6,7 +6,7 @@ export default function UnauthorizedPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center relative overflow-hidden font-sans select-none">
       {/* Glow effect */}
-      <div className="absolute top-1/2 left-1/2 w-[30rem] h-[30rem] bg-rose-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute top-1/2 left-1/2 w-120 h-120 bg-rose-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
 
       {/* Main card */}
       <div className="w-full max-w-md p-2 m-4 relative z-10 animate-in zoom-in-95 duration-500">

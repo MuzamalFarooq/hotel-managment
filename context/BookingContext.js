@@ -24,6 +24,10 @@ export const BookingProvider = ({ children }) => {
   const { data: session } = useSession();
 
   useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
     if (session?.user) {
       fetchRooms();
       if (session.user.role === "General Manager" || session.user.role === "Receptionist") {

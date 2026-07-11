@@ -42,7 +42,6 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    await requireRole(["General Manager", "Receptionist"]);
     await dbConnect();
     const body = await request.json();
 

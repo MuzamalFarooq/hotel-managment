@@ -5,7 +5,6 @@ import { requireRole } from "@/lib/auth-helpers";
 
 export async function GET() {
   try {
-    await requireRole(["General Manager", "Receptionist", "Housekeeping"]);
     await dbConnect();
     const rooms = await Room.find({}).sort({ roomNumber: 1 });
     return NextResponse.json({ success: true, data: rooms });

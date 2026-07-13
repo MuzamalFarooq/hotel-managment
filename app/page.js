@@ -1,95 +1,233 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-// Icons
-const Icons = {
-  Logo: () => (
-    <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-      <span className="text-xl font-black text-white">H</span>
-    </div>
-  ),
-  Single: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400">
-      <path d="M3 20v-8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8" />
-      <path d="M5 10V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4" />
-      <path d="M3 18h18" />
+// ==========================================
+// LUXURY ASSETS & STATIC DATA
+// ==========================================
+
+const HERO_BG_IMAGE = "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1920&q=80"; // Ritz/FourSeasons-like exterior
+
+const AMENITY_ICONS = {
+  "WiFi": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.25 15.25a3.5 3.5 0 013.5 0M8.5 13.5a6 6 0 017 0M6.75 11.75a8.5 8.5 0 0110.5 0M5 10a11 11 0 0114 0" />
     </svg>
   ),
-  Double: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
-      <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8" />
-      <path d="M4 10V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5" />
-      <path d="M2 17h20" />
-      <path d="M7 10v4" />
-      <path d="M17 10v4" />
+  "Air Conditioning": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m9-9H3m14.5-6.5l-11 11m0-11l11 11" />
     </svg>
   ),
-  Calendar: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-      <line x1="16" x2="16" y1="2" y2="6" />
-      <line x1="8" x2="8" y1="2" y2="6" />
-      <line x1="3" x2="21" y1="10" y2="10" />
+  "TV": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 4h10M5 20h14M21 8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V8z" />
     </svg>
   ),
-  Close: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
+  "Mini Bar": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2z" />
     </svg>
   ),
-  User: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
+  "Breakfast": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
-  Card: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-      <rect width="20" height="14" x="2" y="5" rx="2" />
-      <line x1="2" x2="22" y1="10" y2="10" />
+  "Parking": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7h4a3 3 0 010 6H9m0 4h3" />
     </svg>
   ),
-  Phone: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+  "Swimming Pool": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12H3M21 8.5H3M21 15.5H3" />
     </svg>
   ),
-  Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
-      <polyline points="20 6 9 17 4 12" />
+  "Gym": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10h11m-11 4h11M4.5 12h15m-14-6v12m13-12v12" />
+    </svg>
+  ),
+  "Room Service": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+  ),
+  "Balcony": (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
     </svg>
   )
 };
 
+// Metadata mapping by Room Type to populate high-end content dynamically
+const ROOM_META = {
+  "Single": {
+    name: "Deluxe Single Sanctuary",
+    description: "An elegant sanctuary featuring refined custom furnishings, a spacious work area, and state-of-the-art details tailored for a serene solo stay.",
+    bed: "1 King Bed",
+    size: "38 m² / 409 ft²",
+    capacity: "1 Guest",
+    rating: 4.8,
+    reviews: 124,
+    amenities: ["WiFi", "Air Conditioning", "TV", "Mini Bar", "Room Service", "Balcony"],
+    images: [
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  "Double": {
+    name: "Grand Double Master Suite",
+    description: "Experience shared luxury with panoramic views, sophisticated seating areas, and modern premium details perfect for couples or business travelers.",
+    bed: "2 Queen Beds",
+    size: "54 m² / 581 ft²",
+    capacity: "2 Guests",
+    rating: 4.9,
+    reviews: 186,
+    amenities: ["WiFi", "Air Conditioning", "TV", "Mini Bar", "Breakfast", "Parking", "Swimming Pool", "Gym", "Room Service", "Balcony"],
+    images: [
+      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80"
+    ]
+  },
+  "Default": {
+    name: "Signature Executive Suite",
+    description: "A high-end executive accommodation with integrated lounge space, handcrafted details, and premium amenities designed for absolute comfort.",
+    bed: "1 King Bed",
+    size: "62 m² / 667 ft²",
+    capacity: "2 Guests",
+    rating: 4.9,
+    reviews: 92,
+    amenities: ["WiFi", "Air Conditioning", "TV", "Mini Bar", "Breakfast", "Parking", "Room Service", "Balcony"],
+    images: [
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80"
+    ]
+  }
+};
+
+// ==========================================
+// COMPONENT: IMAGE SLIDER
+// ==========================================
+function ImageSlider({ images }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const prevSlide = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const nextSlide = (e) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <div className="relative w-full h-full overflow-hidden group">
+      {/* Images container */}
+      <div 
+        className="w-full h-full flex transition-transform duration-700 ease-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {images.map((img, i) => (
+          <div key={i} className="min-w-full h-full relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={img} 
+              alt={`Suite room view ${i + 1}`} 
+              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              loading="lazy"
+            />
+            {/* Dark gradient overlay for a high-end look */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+          </div>
+        ))}
+      </div>
+
+      {/* Slide Controllers */}
+      {images.length > 1 && (
+        <>
+          <button 
+            type="button"
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md flex items-center justify-center text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+          >
+            <span className="text-sm font-semibold">‹</span>
+          </button>
+          <button 
+            type="button"
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md flex items-center justify-center text-white border border-white/20 transition-all opacity-0 group-hover:opacity-100 shadow-md cursor-pointer"
+          >
+            <span className="text-sm font-semibold">›</span>
+          </button>
+
+          {/* Dots Indicator */}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
+                  currentIndex === i ? "bg-[#C9A227] w-3" : "bg-white/50 hover:bg-white"
+                }`}
+              ></button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// COMPONENT: MAIN LANDING PAGE
+// ==========================================
 export default function LandingPage() {
   const { data: session } = useSession();
-  
-  // Room and Booking states
+  const roomsSectionRef = useRef(null);
+
+  // Scroll threshold state for transparent navbar
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // API State
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  
-  // Filter States
-  const [typeFilter, setTypeFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
-  // Booking Form States
+  // Interactive filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [priceFilter, setPriceFilter] = useState(5000); // Max Price Slider
+  const [capacityFilter, setCapacityFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [bedFilter, setBedFilter] = useState("All");
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [sortBy, setSortBy] = useState("Recommended");
+
+  // Booking & Details Modal states
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [detailedRoom, setDetailedRoom] = useState(null);
+
+  // Booking Form Fields
   const [customerName, setCustomerName] = useState("");
   const [idCard, setIdCard] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  
+
   const today = new Date().toISOString().split("T")[0];
   const threeDaysLater = new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0];
   const [checkInDate, setCheckInDate] = useState(today);
   const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
-  
-  // Success modal state
+
+  // Booking Confirmation Feedback
   const [successBooking, setSuccessBooking] = useState(null);
 
   // Fetch rooms on mount
@@ -99,13 +237,18 @@ export default function LandingPage() {
       const res = await fetch("/api/rooms");
       const data = await res.json();
       if (data.success) {
-        const mapped = data.data.map(r => ({
-          id: r.roomNumber,
-          type: r.roomType,
-          status: r.status,
-          price: r.price,
-          _id: r._id
-        })).sort((a, b) => parseInt(a.id) - parseInt(b.id));
+        // Map database rooms with dynamic meta properties
+        const mapped = data.data.map(room => {
+          const meta = ROOM_META[room.roomType] || ROOM_META["Default"];
+          return {
+            id: room.roomNumber,
+            type: room.roomType,
+            status: room.status,
+            price: room.price,
+            _id: room._id,
+            ...meta
+          };
+        }).sort((a, b) => parseInt(a.id) - parseInt(b.id));
         setRooms(mapped);
       }
     } catch (err) {
@@ -117,9 +260,20 @@ export default function LandingPage() {
 
   useEffect(() => {
     fetchRooms();
+
+    // Scroll listener for sticky transparent navbar
+    const handleScroll = () => {
+      if (window.scrollY > 80) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Calculate nights and total price
+  // Compute calculated nights and pricing
   const calculateNights = () => {
     if (!checkInDate || !checkOutDate) return 1;
     const start = new Date(checkInDate);
@@ -128,12 +282,25 @@ export default function LandingPage() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 1;
   };
-
   const nights = calculateNights();
   const totalPrice = selectedRoom ? selectedRoom.price * nights : 0;
 
-  const handleOpenBookingModal = (room) => {
+  // Scroll to catalog section
+  const handleScrollToCatalog = () => {
+    roomsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Toggle selected amenities list
+  const handleToggleAmenity = (amenity) => {
+    setSelectedAmenities(prev => 
+      prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
+    );
+  };
+
+  // Open booking modal
+  const handleOpenBooking = (room) => {
     setSelectedRoom(room);
+    setDetailedRoom(null); // Close details modal if open
     setCustomerName("");
     setIdCard("");
     setPhoneNumber("");
@@ -141,6 +308,7 @@ export default function LandingPage() {
     setCheckOutDate(threeDaysLater);
   };
 
+  // Submit Booking Form
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
     if (!customerName || !idCard || !phoneNumber || !checkInDate || !checkOutDate || !selectedRoom) {
@@ -175,7 +343,7 @@ export default function LandingPage() {
           nights
         });
         setSelectedRoom(null);
-        fetchRooms(); // refresh room grid
+        fetchRooms(); // refresh rooms grid
       } else {
         alert(data.error || "Booking failed. Please try again.");
       }
@@ -187,310 +355,699 @@ export default function LandingPage() {
     }
   };
 
-  // Filtered rooms list
+  // ==========================================
+  // SORTING & FILTERING
+  // ==========================================
+
+  // Filter items
   const filteredRooms = rooms.filter(room => {
-    // Type Filter
+    // 1. Search Query (Number, Name, Type)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchNum = room.id.toString().includes(query);
+      const matchName = room.name.toLowerCase().includes(query);
+      const matchType = room.type.toLowerCase().includes(query);
+      if (!matchNum && !matchName && !matchType) return false;
+    }
+    // 2. Room Type
     if (typeFilter !== "All" && room.type !== typeFilter) return false;
-    // Status Filter
-    if (showAvailableOnly && room.status !== "Available") return false;
-    if (!showAvailableOnly && statusFilter !== "All" && room.status !== statusFilter) return false;
+    // 3. Price range (Filter rooms less than or equal to current filter price)
+    if (priceFilter && room.price > priceFilter) return false;
+    // 4. Capacity
+    if (capacityFilter !== "All" && room.capacity !== capacityFilter) return false;
+    // 5. Status
+    if (statusFilter !== "All" && room.status !== statusFilter) return false;
+    // 6. Bed Type
+    if (bedFilter !== "All" && room.bed !== bedFilter) return false;
+    // 7. Amenities Checklist
+    if (selectedAmenities.length > 0) {
+      const hasAll = selectedAmenities.every(a => room.amenities.includes(a));
+      if (!hasAll) return false;
+    }
     return true;
   });
 
-  const availableCount = rooms.filter(r => r.status === "Available").length;
+  // Sort items
+  const sortedRooms = [...filteredRooms].sort((a, b) => {
+    if (sortBy === "Lowest Price") {
+      return a.price - b.price;
+    }
+    if (sortBy === "Highest Price") {
+      return b.price - a.price;
+    }
+    if (sortBy === "Available First") {
+      if (a.status === "Available" && b.status !== "Available") return -1;
+      if (a.status !== "Available" && b.status === "Available") return 1;
+      return 0;
+    }
+    if (sortBy === "Most Popular") {
+      return b.rating - a.rating;
+    }
+    if (sortBy === "Newest") {
+      return parseInt(b.id) - parseInt(a.id); // Newer rooms (highest room numbers first)
+    }
+    return 0; // Default
+  });
+
+  // Calculate dynamic stats
+  const totalCount = rooms.length;
+  const maxPriceInDb = rooms.length > 0 ? Math.max(...rooms.map(r => r.price)) : 10000;
+  const minPriceInDb = rooms.length > 0 ? Math.min(...rooms.map(r => r.price)) : 1000;
+
+  // Initialize price range filter appropriately when rooms load
+  useEffect(() => {
+    if (rooms.length > 0) {
+      setPriceFilter(maxPriceInDb);
+    }
+  }, [rooms, maxPriceInDb]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none relative overflow-x-hidden">
+    <div className="min-h-screen bg-stone-50 text-slate-900 flex flex-col font-sans select-none antialiased relative overflow-x-hidden">
       
-      {/* Background ambient glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none"></div>
-      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-3xl -translate-x-1/3 -translate-y-1/2 pointer-events-none"></div>
-      
-      {/* Premium Navbar */}
-      <header className="sticky top-0 z-40 bg-slate-950/40 backdrop-blur-xl border-b border-slate-900">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      {/* ==========================================
+          LUXURY STICKY NAVBAR
+          ========================================== */}
+      <header 
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 border-b ${
+          isScrolled 
+            ? "bg-white/95 backdrop-blur-md border-stone-200/80 shadow-md shadow-stone-100/50 py-3" 
+            : "bg-transparent border-white/10 py-5"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <Icons.Logo />
-            <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400 group-hover:from-white group-hover:to-indigo-300 transition-all">
+            {/* Elegant Luxury Crest Icon */}
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              isScrolled ? "bg-slate-900 text-[#C9A227]" : "bg-white/10 text-white backdrop-blur-sm"
+            }`}>
+              <span className="font-serif text-lg font-bold">G</span>
+            </div>
+            <span className={`text-lg font-serif tracking-widest uppercase transition-all ${
+              isScrolled ? "text-slate-900" : "text-white"
+            }`}>
               Grand Stay
             </span>
           </Link>
           
           <nav className="flex items-center gap-6">
-            {session ? (
-              <Link 
-                href="/dashboard" 
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30 flex items-center gap-2 cursor-pointer"
-              >
-                Go to Dashboard
-              </Link>
-            ) : (
-              <Link 
-                href="/dashboard" 
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30 flex items-center gap-2 cursor-pointer"
-              >
-                Admin Dashboard
-              </Link>
-            )}
+            <Link 
+              href="/dashboard" 
+              className={`font-semibold text-[10px] tracking-widest uppercase px-5 py-3 rounded-lg border transition-all cursor-pointer ${
+                isScrolled 
+                  ? "bg-[#C9A227] hover:bg-[#B18E20] border-[#C9A227] text-white shadow-lg shadow-[#C9A227]/10" 
+                  : "bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm"
+              }`}
+            >
+              {session ? "Dashboard" : "Admin Dashboard"}
+            </Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative max-w-7xl mx-auto px-6 pt-16 pb-12 w-full flex flex-col items-center text-center">
-        <span className="px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-6 animate-in fade-in duration-1000">
-          Luxury Living Redefined
-        </span>
-        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6 max-w-4xl leading-tight">
-          Find Your Perfect <br />
-          <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-400 via-purple-400 to-indigo-600">
-            Premium Sanctuary
-          </span>
-        </h1>
-        <p className="text-slate-400 text-lg md:text-xl max-w-2xl mb-10 leading-relaxed font-medium">
-          Experience state-of-the-art boutique rooms tailored for your ultimate relaxation and premium comfort. Book your stay seamlessly today.
-        </p>
+      {/* ==========================================
+          FULL-SCREEN HERO SECTION
+          ========================================== */}
+      <section className="relative h-screen w-full flex flex-col items-center justify-center text-center overflow-hidden">
+        {/* Background Image with Dark Overlay */}
+        <div className="absolute inset-0 z-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img 
+            src={HERO_BG_IMAGE} 
+            alt="Grand Stay Luxury Hotel" 
+            className="w-full h-full object-cover scale-105 animate-[pulse_10s_infinite]" 
+          />
+          <div className="absolute inset-0 bg-black/60 pointer-events-none"></div>
+        </div>
 
-        {/* Stats strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl w-full bg-slate-900/30 backdrop-blur-md border border-slate-900 rounded-3xl p-6 shadow-xl">
-          <div className="text-center">
-            <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Total Rooms</p>
-            <p className="text-3xl font-black text-white">{loading ? "..." : rooms.length}</p>
+        {/* Content */}
+        <div className="relative z-10 px-6 max-w-4xl flex flex-col items-center animate-[fadeIn_1.2s_ease-out_both]">
+          <span className="text-[#C9A227] text-xs font-bold uppercase tracking-[0.25em] mb-4">
+            Five-Star Boutique Hotel & Suites
+          </span>
+          <h1 className="text-5xl md:text-8xl font-serif text-white tracking-tight mb-6 leading-tight font-light">
+            Experience Luxury <br />
+            <span className="italic font-normal font-serif text-[#C9A227]">Like Never Before</span>
+          </h1>
+          <div className="w-12 h-px bg-[#C9A227] mb-6"></div>
+          <p className="text-stone-300 text-base md:text-lg max-w-2xl mb-10 leading-relaxed tracking-wide font-light">
+            Book premium rooms designed with modern elegance, refined comfort, and unforgettable hospitality.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <button
+              onClick={handleScrollToCatalog}
+              className="bg-[#C9A227] hover:bg-[#B18E20] text-white font-semibold text-[10px] tracking-widest uppercase px-8 py-4 rounded-lg shadow-xl shadow-black/20 hover:-translate-y-0.5 transition-all cursor-pointer w-48"
+            >
+              Explore Rooms
+            </button>
+            <button
+              onClick={handleScrollToCatalog}
+              className="bg-transparent hover:bg-white/10 text-white border border-white/30 backdrop-blur-xs font-semibold text-[10px] tracking-widest uppercase px-8 py-4 rounded-lg hover:-translate-y-0.5 transition-all cursor-pointer w-48"
+            >
+              Book Stay
+            </button>
           </div>
-          <div className="text-center border-l border-slate-800/80">
-            <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Available Now</p>
-            <p className="text-3xl font-black text-emerald-400">{loading ? "..." : availableCount}</p>
+        </div>
+
+        {/* Scroll indicator */}
+        <button
+          onClick={handleScrollToCatalog}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/50 hover:text-white transition-all cursor-pointer group"
+        >
+          <span className="text-[9px] uppercase tracking-widest">Scroll</span>
+          <div className="w-6 h-10 border border-white/30 rounded-full p-1 flex justify-center">
+            <div className="w-1 h-2 bg-[#C9A227] rounded-full animate-bounce"></div>
           </div>
-          <div className="text-center border-l border-slate-800/80">
-            <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Boutique Types</p>
-            <p className="text-3xl font-black text-indigo-400">Single & Double</p>
-          </div>
-          <div className="text-center border-l border-slate-800/80">
-            <p className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-1">Starting Price</p>
-            <p className="text-3xl font-black text-purple-400">Rs 2,500</p>
+        </button>
+      </section>
+
+      {/* ==========================================
+          ROOMS CATALOG SECTION (LIGHT THEME)
+          ========================================== */}
+      <section 
+        id="rooms-section"
+        ref={roomsSectionRef} 
+        className="max-w-7xl mx-auto px-6 py-24 w-full flex-1 relative z-10"
+      >
+        
+        {/* Header Title */}
+        <div className="text-center mb-16">
+          <span className="text-[#C9A227] text-xs font-bold uppercase tracking-widest block mb-2">Our Suites</span>
+          <h2 className="text-4xl md:text-5xl font-serif font-light text-slate-900 tracking-tight">
+            Curated Luxury Stays
+          </h2>
+          <div className="w-10 h-0.5 bg-[#C9A227] mx-auto mt-4"></div>
+          <p className="text-stone-500 text-sm mt-3 max-w-md mx-auto">
+            Choose from our elegant selection of premium units, fully equipped with luxury amenities.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {/* ==========================================
+              SIDEBAR FILTER SECTION
+              ========================================== */}
+          <aside className="lg:col-span-1 bg-white border border-stone-200/80 rounded-2xl p-6 shadow-sm shadow-stone-100 flex flex-col gap-6 h-fit sticky top-24">
+            <div>
+              <h3 className="font-serif text-lg font-bold text-slate-900 border-b border-stone-100 pb-3">Filters</h3>
+            </div>
+
+            {/* 1. Search Query */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Search Catalog</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Room no, suite type..."
+                  className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-2.5 pl-3 pr-8 text-xs focus:outline-none transition-all text-slate-800"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400">
+                  🔍
+                </span>
+              </div>
+            </div>
+
+            {/* 2. Room Type Selector */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Suite Type</label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-2.5 px-3 text-xs focus:outline-none transition-all text-slate-800"
+              >
+                <option value="All">All Types</option>
+                <option value="Single">Single Suite</option>
+                <option value="Double">Double Suite</option>
+              </select>
+            </div>
+
+            {/* 3. Max Price Filter */}
+            {rooms.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Max Price</label>
+                  <span className="text-[10px] font-semibold text-stone-500">PKR {priceFilter.toLocaleString()}</span>
+                </div>
+                <input
+                  type="range"
+                  min={minPriceInDb}
+                  max={maxPriceInDb}
+                  step={500}
+                  value={priceFilter}
+                  onChange={(e) => setPriceFilter(Number(e.target.value))}
+                  className="w-full accent-[#C9A227] bg-stone-100 h-1.5 rounded-lg cursor-pointer"
+                />
+                <div className="flex justify-between text-[8px] font-bold text-stone-400">
+                  <span>PKR {minPriceInDb.toLocaleString()}</span>
+                  <span>PKR {maxPriceInDb.toLocaleString()}</span>
+                </div>
+              </div>
+            )}
+
+            {/* 4. Capacity Filter */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Guests Capacity</label>
+              <select
+                value={capacityFilter}
+                onChange={(e) => setCapacityFilter(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-2.5 px-3 text-xs focus:outline-none transition-all text-slate-800"
+              >
+                <option value="All">Any Capacity</option>
+                <option value="1 Guest">1 Guest</option>
+                <option value="2 Guests">2 Guests</option>
+              </select>
+            </div>
+
+            {/* 5. Bed Type Filter */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Bedding</label>
+              <select
+                value={bedFilter}
+                onChange={(e) => setBedFilter(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-2.5 px-3 text-xs focus:outline-none transition-all text-slate-800"
+              >
+                <option value="All">Any Bed Type</option>
+                <option value="1 King Bed">1 King Bed</option>
+                <option value="2 Queen Beds">2 Queen Beds</option>
+              </select>
+            </div>
+
+            {/* 6. Availability Badge */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Availability</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-2.5 px-3 text-xs focus:outline-none transition-all text-slate-800"
+              >
+                <option value="All">Show All Stays</option>
+                <option value="Available">Available</option>
+                <option value="Booked">Booked</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            </div>
+
+            {/* 7. Amenities Checklist */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227]">Amenities</label>
+              <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
+                {Object.keys(AMENITY_ICONS).map(amenity => {
+                  const checked = selectedAmenities.includes(amenity);
+                  return (
+                    <label 
+                      key={amenity} 
+                      className="flex items-center gap-2.5 py-1 text-xs text-slate-700 cursor-pointer hover:text-[#C9A227] transition-all"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleToggleAmenity(amenity)}
+                        className="rounded border-stone-300 text-[#C9A227] focus:ring-[#C9A227] bg-stone-50 w-3.5 h-3.5 cursor-pointer"
+                      />
+                      <span>{amenity}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Clear Button */}
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setTypeFilter("All");
+                setPriceFilter(maxPriceInDb);
+                setCapacityFilter("All");
+                setStatusFilter("All");
+                setBedFilter("All");
+                setSelectedAmenities([]);
+              }}
+              className="w-full py-2.5 border border-stone-200 hover:border-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-widest text-stone-500 hover:text-slate-900 transition-all cursor-pointer text-center"
+            >
+              Reset Filters
+            </button>
+          </aside>
+
+          {/* ==========================================
+              ROOMS CONTAINER
+              ========================================== */}
+          <div className="lg:col-span-3 flex flex-col gap-6">
+            
+            {/* Controls Bar: Sorting & Stats */}
+            <div className="bg-white border border-stone-200/80 rounded-2xl px-6 py-4 shadow-sm shadow-stone-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-xs text-stone-500 font-medium">
+                Showing <span className="font-extrabold text-slate-800">{sortedRooms.length}</span> of {totalCount} luxury units
+              </p>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Sort By</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-stone-50 border border-stone-200 rounded-lg py-1.5 px-3 text-xs focus:outline-none focus:border-[#C9A227] transition-all text-slate-800 font-semibold cursor-pointer"
+                >
+                  <option value="Recommended">Recommended</option>
+                  <option value="Lowest Price">Lowest Price</option>
+                  <option value="Highest Price">Highest Price</option>
+                  <option value="Available First">Available First</option>
+                  <option value="Most Popular">Most Popular</option>
+                  <option value="Newest">Newest</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Room Cards Grid */}
+            {loading ? (
+              <div className="py-32 text-center flex flex-col items-center gap-4">
+                <div className="w-10 h-10 border-2 border-stone-200 border-t-[#C9A227] rounded-full animate-spin"></div>
+                <p className="text-[#C9A227] text-xs font-bold uppercase tracking-widest">Consulting Room Registry...</p>
+              </div>
+            ) : sortedRooms.length === 0 ? (
+              <div className="py-24 text-center border border-dashed border-stone-200 rounded-3xl flex flex-col items-center gap-4 bg-white shadow-sm shadow-stone-100">
+                <div className="text-3xl text-stone-300">🛎️</div>
+                <h3 className="text-lg font-serif text-slate-800">No Suites Match Your Selection</h3>
+                <p className="text-stone-400 text-xs max-w-xs mx-auto">Please adjust your search text or clear your active filters to browse our premium catalog.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sortedRooms.map(room => (
+                  <article 
+                    key={room.id}
+                    className="bg-white border border-stone-200/80 rounded-2xl flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-stone-200/50 group"
+                  >
+                    {/* Top half: Image slider */}
+                    <div className="aspect-[4/3] w-full relative overflow-hidden bg-stone-100">
+                      <ImageSlider images={room.images} />
+
+                      {/* Floating Room ID Badge */}
+                      <span className="absolute top-4 left-4 z-10 bg-slate-950/80 backdrop-blur-xs text-[9px] uppercase tracking-widest font-black px-3 py-1.5 rounded-md text-white border border-white/10">
+                        Suite {room.id}
+                      </span>
+                      
+                      {/* Availability status badge */}
+                      <span className={`absolute top-4 right-4 z-10 text-[9px] uppercase tracking-widest font-black px-2.5 py-1.5 rounded-md border flex items-center gap-1.5 ${
+                        room.status === "Available"
+                          ? "bg-emerald-500/90 text-white border-emerald-500"
+                          : room.status === "Booked"
+                            ? "bg-rose-500/90 text-white border-rose-500"
+                            : "bg-amber-500/90 text-white border-amber-500"
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full bg-white ${room.status === "Available" ? "animate-pulse" : ""}`}></span>
+                        {room.status}
+                      </span>
+                    </div>
+
+                    {/* Bottom half: Metadata details */}
+                    <div className="p-6 flex flex-col flex-1">
+                      {/* Bed / Size Row */}
+                      <div className="flex gap-4 text-[10px] text-stone-500 font-bold uppercase tracking-wider mb-2">
+                        <span className="flex items-center gap-1">🛏️ {room.bed}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">📐 {room.size}</span>
+                      </div>
+
+                      {/* Suite Name & Type */}
+                      <h4 className="font-serif text-lg font-semibold text-slate-900 mb-2 leading-snug group-hover:text-[#C9A227] transition-all">
+                        {room.name}
+                      </h4>
+
+                      {/* Stars Rating Display */}
+                      <div className="flex items-center gap-1 mb-4 text-xs text-amber-500">
+                        <span>{"★".repeat(5)}</span>
+                        <span className="text-[10px] text-stone-400 font-semibold ml-1">({room.rating})</span>
+                      </div>
+
+                      {/* Amenities Row */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {room.amenities.slice(0, 4).map(amenity => (
+                          <div 
+                            key={amenity}
+                            title={amenity}
+                            className="bg-stone-50 text-slate-700 p-1.5 rounded-md border border-stone-200/50 flex items-center justify-center hover:text-[#C9A227] hover:border-[#C9A227]/30 transition-colors"
+                          >
+                            {AMENITY_ICONS[amenity] || <span>✨</span>}
+                          </div>
+                        ))}
+                        {room.amenities.length > 4 && (
+                          <span className="text-[10px] font-bold text-stone-400 bg-stone-100/50 border border-stone-200/30 px-2 py-1.5 rounded-md">
+                            +{room.amenities.length - 4} more
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Pricing block */}
+                      <div className="mt-auto pt-4 border-t border-stone-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[9px] font-bold uppercase text-stone-400 block tracking-wider">Per Night Stay</span>
+                          <span className="text-base font-black text-slate-900 font-serif">
+                            PKR {room.price.toLocaleString()}{" "}
+                            <span className="text-[10px] font-medium text-stone-500">/ Night</span>
+                          </span>
+                        </div>
+
+                        {/* Interactive Buttons */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDetailedRoom(room)}
+                            className="p-2 border border-stone-200 hover:border-slate-800 text-slate-700 hover:text-slate-900 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                            title="View Room Details"
+                          >
+                            ℹ️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenBooking(room)}
+                            disabled={room.status !== "Available"}
+                            className={`px-4 py-2.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                              room.status === "Available"
+                                ? "bg-[#C9A227] hover:bg-[#B18E20] text-white shadow-md shadow-[#C9A227]/10"
+                                : "bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200/50"
+                            }`}
+                          >
+                            {room.status === "Available" ? "Book Stay" : room.status}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Catalog & Filter Section */}
-      <main className="max-w-7xl mx-auto px-6 pb-24 w-full flex-1">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 border-b border-slate-900 pb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-white mb-2">Explore Our Suites</h2>
-            <p className="text-slate-500 text-sm">Select from our verified luxury inventory and book instantly.</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Type Filters */}
-            <div className="flex bg-slate-900/60 p-1.5 rounded-xl border border-slate-800">
-              {["All", "Single", "Double"].map(type => (
-                <button
-                  key={type}
-                  onClick={() => setTypeFilter(type)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all cursor-pointer ${
-                    typeFilter === type
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
-                      : "text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* Availability Checkbox toggle */}
-            <label className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 px-4 py-3 rounded-xl cursor-pointer hover:border-slate-700 transition-colors">
-              <input
-                type="checkbox"
-                checked={showAvailableOnly}
-                onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                className="rounded border-slate-800 text-indigo-600 focus:ring-indigo-500 bg-slate-950 w-4 h-4 cursor-pointer"
-              />
-              <span className="text-xs font-bold text-slate-300">Show Available Only</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Loading Spinner */}
-        {loading ? (
-          <div className="py-24 text-center flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-            <p className="text-slate-500 text-sm font-semibold uppercase tracking-widest">Loading Luxury Suites...</p>
-          </div>
-        ) : filteredRooms.length === 0 ? (
-          <div className="py-24 text-center border border-dashed border-slate-900 rounded-[2.5rem] flex flex-col items-center gap-4">
-            <div className="text-4xl">🚪</div>
-            <h3 className="text-xl font-bold text-slate-400">No rooms match your filters</h3>
-            <p className="text-slate-600 text-sm max-w-xs mx-auto">Try clearing your filters or changing search criteria to view our inventory.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredRooms.map(room => (
-              <div 
-                key={room.id}
-                className="bg-slate-900/30 border border-slate-900 hover:border-slate-800/80 rounded-[2rem] p-5 flex flex-col transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/5 group"
-              >
-                {/* Room card header: Image representation / Icon */}
-                <div className="aspect-video w-full rounded-2xl bg-linear-to-br from-slate-950 to-slate-900 border border-slate-900 flex items-center justify-center mb-5 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.05)_0%,transparent_70%)] pointer-events-none"></div>
-                  {room.type === "Single" ? <Icons.Single /> : <Icons.Double />}
-                  <span className="absolute top-3 left-3 bg-slate-950/80 border border-slate-800 text-[10px] uppercase tracking-wider font-extrabold px-3 py-1.5 rounded-lg text-slate-400">
-                    Room #{room.id}
-                  </span>
-                  
-                  {/* Status Indicator Badge */}
-                  <span className={`absolute top-3 right-3 text-[9px] uppercase tracking-widest font-black px-2.5 py-1 rounded-md border ${
-                    room.status === "Available"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : room.status === "Booked"
-                        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  }`}>
-                    {room.status}
-                  </span>
-                </div>
-
-                <h3 className="font-extrabold text-lg text-white mb-1 group-hover:text-indigo-400 transition-colors">
-                  {room.type} Suite
-                </h3>
-                <p className="text-slate-500 text-xs font-bold mb-6">Fully furnished luxury suite</p>
-
-                <div className="mt-auto pt-4 border-t border-slate-900/80 flex items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Price</span>
-                    <span className="text-lg font-black text-slate-100">Rs {room.price.toLocaleString()} <span className="text-xs font-medium text-slate-500">/ night</span></span>
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenBookingModal(room)}
-                    disabled={room.status !== "Available"}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-all ${
-                      room.status === "Available"
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/10"
-                        : "bg-slate-950 border border-slate-900 text-slate-600 cursor-not-allowed"
-                    }`}
-                  >
-                    {room.status === "Available" ? "Book Now" : room.status}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
-
-      {/* Premium Booking Modal */}
-      {selectedRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+      {/* ==========================================
+          LUXURY ROOM DETAILS MODAL
+          ========================================== */}
+      {detailedRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_0.3s_ease-out_both]">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md" onClick={() => setSelectedRoom(null)}></div>
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setDetailedRoom(null)}></div>
           
           {/* Modal Container */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-[2.5rem] p-8 w-full max-w-xl shadow-2xl relative z-10 animate-in zoom-in-95 duration-300">
+          <div className="bg-white border border-stone-200 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl relative z-10 animate-[zoomIn_0.3s_ease-out_both] flex flex-col max-h-[90vh]">
+            
+            {/* Header / Close */}
+            <div className="p-6 border-b border-stone-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Luxury Suite Overview</span>
+                <h3 className="font-serif text-2xl font-semibold text-slate-900 mt-1">{detailedRoom.name}</h3>
+              </div>
+              <button 
+                onClick={() => setDetailedRoom(null)} 
+                className="w-9 h-9 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-stone-100 transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto flex-1 p-6 md:p-8 space-y-6">
+              
+              {/* Image Slider */}
+              <div className="aspect-[16/9] w-full rounded-xl overflow-hidden relative border border-stone-200">
+                <ImageSlider images={detailedRoom.images} />
+              </div>
+
+              {/* Grid Specifications */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-stone-50 border border-stone-200/50 p-4 rounded-xl">
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 block">Suite Unit</span>
+                  <span className="font-semibold text-slate-800 text-sm">Room #{detailedRoom.id}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 block">Bedding Layout</span>
+                  <span className="font-semibold text-slate-800 text-sm">{detailedRoom.bed}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 block">Suite Size</span>
+                  <span className="font-semibold text-slate-800 text-sm">{detailedRoom.size}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400 block">Max Occupancy</span>
+                  <span className="font-semibold text-slate-800 text-sm">{detailedRoom.capacity}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#C9A227] mb-2">Description</h4>
+                <p className="text-stone-600 text-sm leading-relaxed font-light">{detailedRoom.description}</p>
+              </div>
+
+              {/* Amenities Grid */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#C9A227] mb-3">Suite Amenities</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {detailedRoom.amenities.map(amenity => (
+                    <div 
+                      key={amenity}
+                      className="flex items-center gap-3 p-3 bg-white border border-stone-200/80 rounded-lg text-xs font-medium text-slate-700"
+                    >
+                      <div className="text-[#C9A227]">{AMENITY_ICONS[amenity] || <span>✨</span>}</div>
+                      <span>{amenity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer / CTA Actions */}
+            <div className="p-6 border-t border-stone-100 bg-stone-50/50 flex items-center justify-between gap-6">
+              <div>
+                <span className="text-[9px] font-bold uppercase text-stone-400 block">Per Night stay</span>
+                <span className="text-lg font-black text-slate-900 font-serif">PKR {detailedRoom.price.toLocaleString()}</span>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDetailedRoom(null)}
+                  className="bg-white hover:bg-stone-100 border border-stone-200 py-3 px-6 rounded-lg font-bold text-xs uppercase tracking-widest text-stone-500 hover:text-slate-900 transition-all cursor-pointer text-center"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleOpenBooking(detailedRoom)}
+                  disabled={detailedRoom.status !== "Available"}
+                  className={`py-3 px-8 rounded-lg font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
+                    detailedRoom.status === "Available"
+                      ? "bg-[#C9A227] hover:bg-[#B18E20] text-white shadow-lg shadow-[#C9A227]/20"
+                      : "bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200"
+                  }`}
+                >
+                  Book Stay Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          LUXURY BOOKING FORM MODAL
+          ========================================== */}
+      {selectedRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_0.3s_ease-out_both]">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setSelectedRoom(null)}></div>
+          
+          {/* Form Card */}
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 w-full max-w-xl shadow-2xl relative z-10 animate-[zoomIn_0.3s_ease-out_both]">
             <button 
               onClick={() => setSelectedRoom(null)} 
-              className="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-950 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-6 right-6 w-9 h-9 rounded-full bg-stone-50 hover:bg-stone-100 border border-stone-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all cursor-pointer"
             >
-              <Icons.Close />
+              ✕
             </button>
 
             <div className="mb-6">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg mb-2 inline-block">
-                Suite Booking
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227] border border-[#C9A227]/30 bg-[#C9A227]/10 px-3 py-1.5 rounded-md mb-2 inline-block">
+                Secure Stay Reservation
               </span>
-              <h3 className="text-3xl font-black text-white tracking-tight">Book Room #{selectedRoom.id}</h3>
-              <p className="text-slate-400 text-sm mt-1">{selectedRoom.type} Suite — Rs {selectedRoom.price.toLocaleString()} per night</p>
+              <h3 className="text-2xl font-serif text-slate-900 tracking-tight">Book Stay #{selectedRoom.id}</h3>
+              <p className="text-stone-500 text-xs mt-1">{selectedRoom.name} — PKR {selectedRoom.price.toLocaleString()} / Night</p>
             </div>
 
             <form onSubmit={handleConfirmBooking} className="space-y-5">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Customer Name</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2"><Icons.User /></span>
+                <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227] block mb-2">Guest Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Enter full name"
+                  className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-3 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A227] transition-all text-slate-800 font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227] block mb-2">ID Card / Passport</label>
                   <input
                     type="text"
                     required
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter full name"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100"
+                    value={idCard}
+                    onChange={(e) => setIdCard(e.target.value)}
+                    placeholder="e.g. 12345-6789012-3"
+                    className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-3 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A227] transition-all text-slate-800 font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227] block mb-2">Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="e.g. 03001234567"
+                    className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-3 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A227] transition-all text-slate-800 font-semibold"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">ID Card / CNIC</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2"><Icons.Card /></span>
-                    <input
-                      type="text"
-                      required
-                      value={idCard}
-                      onChange={(e) => setIdCard(e.target.value)}
-                      placeholder="e.g. 12345-6789012-3"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100"
-                    />
-                  </div>
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227] block mb-2">Check-in Date</label>
+                  <input
+                    type="date"
+                    required
+                    min={today}
+                    value={checkInDate}
+                    onChange={(e) => setCheckInDate(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-3 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A227] transition-all text-slate-800 font-semibold"
+                  />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Phone Number</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2"><Icons.Phone /></span>
-                    <input
-                      type="text"
-                      required
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="e.g. 03001234567"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Check-in Date</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"><Icons.Calendar /></span>
-                    <input
-                      type="date"
-                      required
-                      min={today}
-                      value={checkInDate}
-                      onChange={(e) => setCheckInDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Check-out Date</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"><Icons.Calendar /></span>
-                    <input
-                      type="date"
-                      required
-                      min={checkInDate || today}
-                      value={checkOutDate}
-                      onChange={(e) => setCheckOutDate(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all text-slate-100"
-                    />
-                  </div>
+                  <label className="text-[9px] font-bold uppercase tracking-widest text-[#C9A227] block mb-2">Check-out Date</label>
+                  <input
+                    type="date"
+                    required
+                    min={checkInDate || today}
+                    value={checkOutDate}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 focus:border-[#C9A227] rounded-lg py-3 px-4 text-xs focus:outline-none focus:ring-1 focus:ring-[#C9A227] transition-all text-slate-800 font-semibold"
+                  />
                 </div>
               </div>
 
               {/* Dynamic Cost Estimator card */}
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex justify-between items-center mt-2">
+              <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 flex justify-between items-center mt-2">
                 <div>
-                  <span className="text-[9px] font-black uppercase text-slate-500 block">Total Nights</span>
-                  <span className="font-extrabold text-white text-sm">{nights} {nights === 1 ? "Night" : "Nights"}</span>
+                  <span className="text-[8px] font-bold uppercase text-stone-400 block tracking-wider">Reservation Nights</span>
+                  <span className="font-extrabold text-slate-800 text-xs">{nights} {nights === 1 ? "Night" : "Nights"}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[9px] font-black uppercase text-slate-500 block">Total Cost</span>
-                  <span className="font-black text-emerald-400 text-lg">Rs {totalPrice.toLocaleString()}</span>
+                  <span className="text-[8px] font-bold uppercase text-stone-400 block tracking-wider">Estimated Total</span>
+                  <span className="font-black text-[#C9A227] text-lg font-serif">PKR {totalPrice.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -498,16 +1055,16 @@ export default function LandingPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedRoom(null)}
-                  className="flex-1 bg-slate-950 hover:bg-slate-800 border border-slate-850 py-3.5 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-400 hover:text-white transition-all cursor-pointer text-center"
+                  className="flex-1 bg-white hover:bg-stone-100 border border-stone-200 py-3.5 rounded-lg font-bold text-xs uppercase tracking-widest text-stone-500 hover:text-slate-900 transition-all cursor-pointer text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={bookingLoading}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-indigo-600/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="flex-1 bg-[#C9A227] hover:bg-[#B18E20] disabled:opacity-50 py-3.5 rounded-lg font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-[#C9A227]/20 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {bookingLoading ? "Processing..." : "Confirm Booking"}
+                  {bookingLoading ? "Connecting..." : "Confirm Reservation"}
                 </button>
               </div>
             </form>
@@ -515,52 +1072,117 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Booking Success Modal */}
+      {/* ==========================================
+          LUXURY BOOKING CONFIRMATION MODAL
+          ========================================== */}
       {successBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-md" onClick={() => setSuccessBooking(null)}></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_0.3s_ease-out_both]">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setSuccessBooking(null)}></div>
           
-          <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl relative z-10 text-center animate-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/20">
-              <Icons.Check />
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 w-full max-w-md shadow-2xl relative z-10 text-center animate-[zoomIn_0.3s_ease-out_both]">
+            <div className="w-16 h-16 bg-[#C9A227]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#C9A227]/20 text-[#C9A227] text-2xl">
+              ✓
             </div>
 
-            <h3 className="text-2xl font-black text-white tracking-tight">Booking Confirmed!</h3>
-            <p className="text-slate-400 text-xs mt-1 uppercase font-bold tracking-widest text-emerald-400">Suite Booked Successfully</p>
+            <h3 className="text-2xl font-serif font-semibold text-slate-950 tracking-tight">Stay Confirmed</h3>
+            <p className="text-[#C9A227] text-[10px] mt-1.5 uppercase font-bold tracking-widest">Grand Stay Reservation Success</p>
             
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 my-6 text-left space-y-3">
-              <div className="flex justify-between border-b border-slate-900 pb-2">
-                <span className="text-slate-500 text-xs">Room Number</span>
-                <span className="text-white font-extrabold text-xs">Room #{successBooking.roomNumber}</span>
+            <div className="bg-stone-50 border border-stone-200/50 rounded-xl p-5 my-6 text-left space-y-3">
+              <div className="flex justify-between border-b border-stone-100 pb-2">
+                <span className="text-stone-500 text-xs">Suite Unit</span>
+                <span className="text-slate-900 font-bold text-xs">Room #{successBooking.roomNumber}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-900 pb-2">
-                <span className="text-slate-500 text-xs">Guest Name</span>
-                <span className="text-white font-extrabold text-xs">{successBooking.customerName}</span>
+              <div className="flex justify-between border-b border-stone-100 pb-2">
+                <span className="text-stone-500 text-xs">Guest Name</span>
+                <span className="text-slate-900 font-bold text-xs">{successBooking.customerName}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-900 pb-2">
-                <span className="text-slate-500 text-xs">Dates</span>
-                <span className="text-white font-extrabold text-xs">{successBooking.checkInDate} to {successBooking.checkOutDate}</span>
+              <div className="flex justify-between border-b border-stone-100 pb-2">
+                <span className="text-stone-500 text-xs">Stay Period</span>
+                <span className="text-slate-900 font-bold text-xs">{successBooking.checkInDate} to {successBooking.checkOutDate}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 text-xs">Paid</span>
-                <span className="text-emerald-400 font-black text-xs">Rs {successBooking.totalPrice.toLocaleString()} ({successBooking.nights} {successBooking.nights === 1 ? "night" : "nights"})</span>
+                <span className="text-stone-500 text-xs">Total Charged</span>
+                <span className="text-[#C9A227] font-black text-xs font-serif">PKR {successBooking.totalPrice.toLocaleString()} ({successBooking.nights} {successBooking.nights === 1 ? "night" : "nights"})</span>
               </div>
             </div>
 
             <button
               onClick={() => setSuccessBooking(null)}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
+              className="w-full bg-[#C9A227] hover:bg-[#B18E20] py-3.5 rounded-lg font-black text-xs uppercase tracking-widest text-white shadow-lg shadow-[#C9A227]/20 transition-all cursor-pointer"
             >
-              Back to Catalog
+              Back to Exploration
             </button>
           </div>
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600">
-        <p>© 2026 Grand Stay Hotel Management System. All rights reserved.</p>
+      {/* ==========================================
+          LUXURY FOOTER
+          ========================================== */}
+      <footer className="bg-slate-950 text-stone-400 text-xs border-t border-stone-900 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* About Column */}
+          <div className="flex flex-col gap-4">
+            <span className="font-serif text-lg tracking-widest uppercase text-white">Grand Stay</span>
+            <p className="text-stone-400 font-light leading-relaxed">
+              A premium boutique hotel designed with modern elegance, refined comfort, and unforgettable hospitality. Your exquisite escape awaits.
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div className="flex flex-col gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Quick Links</span>
+            <ul className="space-y-2.5 font-light">
+              <li><button onClick={handleScrollToCatalog} className="hover:text-white transition-all cursor-pointer">Explore Suites</button></li>
+              <li><button onClick={handleScrollToCatalog} className="hover:text-white transition-all cursor-pointer">Book Stay</button></li>
+              <li><Link href="/dashboard" className="hover:text-white transition-all">Staff Admin Portal</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact Details */}
+          <div className="flex flex-col gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Hotel Contact</span>
+            <ul className="space-y-2.5 font-light">
+              <li className="flex items-center gap-2">📞 <span>+92 300 1234567</span></li>
+              <li className="flex items-center gap-2">📧 <span>contact@grandstay.com</span></li>
+              <li className="flex items-center gap-2">📍 <span>12 Luxury Avenue, Mall Road, Lahore</span></li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div className="flex flex-col gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#C9A227]">Stay Updated</span>
+            <p className="font-light">Subscribe to our newsletter for exclusive offers and announcements.</p>
+            <div className="flex bg-white/5 border border-white/10 rounded-lg p-1">
+              <input
+                type="email"
+                placeholder="Email address"
+                className="bg-transparent border-none text-xs focus:outline-none w-full px-3 py-2 text-white"
+              />
+              <button className="bg-[#C9A227] hover:bg-[#B18E20] text-white px-4 py-2 rounded-md font-bold uppercase text-[9px] tracking-widest transition-all cursor-pointer">
+                Join
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom copyright bar */}
+        <div className="border-t border-white/5 py-8 text-center text-[10px] text-stone-600">
+          <p>© 2026 Grand Stay Luxury Hotel Management System. All rights reserved.</p>
+        </div>
       </footer>
+
+      {/* Embedded Animations Styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes zoomIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

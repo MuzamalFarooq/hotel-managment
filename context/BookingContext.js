@@ -23,19 +23,6 @@ export const BookingProvider = ({ children }) => {
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const { data: session } = useSession();
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchRooms();
-      if (session.user.role === "General Manager" || session.user.role === "Receptionist") {
-        fetchBookings();
-      }
-    }
-  }, [session]);
-
   const fetchBookings = async () => {
     try {
       const res = await fetch("/api/bookings");
@@ -103,14 +90,31 @@ export const BookingProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      fetchRooms();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (session?.user) {
+      Promise.resolve().then(() => {
+        fetchRooms();
+        if (session.user.role === "General Manager" || session.user.role === "Receptionist") {
+          fetchBookings();
+        }
+      });
+    }
+  }, [session]);
+
   // Form States
   const [customerName, setCustomerName] = useState("");
   const [idCard, setIdCard] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const today = new Date().toISOString().split('T')[0];
-  const threeDaysLater = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
-  const [checkInDate, setCheckInDate] = useState(today);
-  const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
+  const [today] = useState(() => new Date().toISOString().split('T')[0]);
+  const [threeDaysLater] = useState(() => new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]);
+  const [checkInDate, setCheckInDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [checkOutDate, setCheckOutDate] = useState(() => new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]);
   const [newRoom, setNewRoom] = useState({ id: "", type: "Single", price: "" });
 
   const handleBookRoom = async () => {

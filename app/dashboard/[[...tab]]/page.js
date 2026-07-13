@@ -94,7 +94,9 @@ export default function DashboardPage() {
   // Fetch Analytics data
   useEffect(() => {
     if (activeTab === "analytics" && role === "General Manager") {
-      setAnalyticsLoading(true);
+      Promise.resolve().then(() => {
+        setAnalyticsLoading(true);
+      });
       fetch("/api/analytics")
         .then((res) => res.json())
         .then((data) => {

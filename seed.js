@@ -51,7 +51,7 @@ async function seed() {
     await mongoose.connect(dbUri);
     console.log("Connected successfully to MongoDB.");
 
-    // Seed General Manager
+    // Seed General Manager: muzamalfarooq
     const username = "muzamalfarooq";
     const password = "muzamal123";
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -75,6 +75,32 @@ async function seed() {
         image: "https://i.pravatar.cc/150?u=muzamal"
       });
       console.log(`Created new General Manager: ${username}`);
+    }
+
+    // Seed General Manager: admin
+    const adminUsername = "admin";
+    const adminPassword = "password123";
+    const adminHashedPassword = bcrypt.hashSync(adminPassword, 10);
+
+    const existingAdmin = await Staff.findOne({ username: adminUsername });
+    if (existingAdmin) {
+      existingAdmin.password = adminHashedPassword;
+      existingAdmin.role = "General Manager";
+      existingAdmin.status = "Active";
+      await existingAdmin.save();
+      console.log(`Updated existing General Manager: ${adminUsername}`);
+    } else {
+      await Staff.create({
+        name: "Admin User",
+        username: adminUsername,
+        password: adminHashedPassword,
+        email: "admin@grandstay.com",
+        phone: "1234567890",
+        role: "General Manager",
+        status: "Active",
+        image: "https://i.pravatar.cc/150?u=admin"
+      });
+      console.log(`Created new General Manager: ${adminUsername}`);
     }
 
     // Seed Initial Rooms if there are none

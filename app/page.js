@@ -222,10 +222,10 @@ export default function LandingPage() {
   const [idCard, setIdCard] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  const today = new Date().toISOString().split("T")[0];
-  const threeDaysLater = new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0];
-  const [checkInDate, setCheckInDate] = useState(today);
-  const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
+  const [today] = useState(() => new Date().toISOString().split("T")[0]);
+  const [threeDaysLater] = useState(() => new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0]);
+  const [checkInDate, setCheckInDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [checkOutDate, setCheckOutDate] = useState(() => new Date(Date.now() + 86400000 * 3).toISOString().split("T")[0]);
 
   // Booking Confirmation Feedback
   const [successBooking, setSuccessBooking] = useState(null);
@@ -259,7 +259,9 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    fetchRooms();
+    Promise.resolve().then(() => {
+      fetchRooms();
+    });
 
     // Scroll listener for sticky transparent navbar
     const handleScroll = () => {
@@ -417,7 +419,9 @@ export default function LandingPage() {
   // Initialize price range filter appropriately when rooms load
   useEffect(() => {
     if (rooms.length > 0) {
-      setPriceFilter(maxPriceInDb);
+      Promise.resolve().then(() => {
+        setPriceFilter(maxPriceInDb);
+      });
     }
   }, [rooms, maxPriceInDb]);
 

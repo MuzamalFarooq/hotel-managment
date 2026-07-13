@@ -19,9 +19,9 @@ export const authOptions = {
 
         await dbConnect();
 
-        // 1. Auto-seed a default General Manager if there are no staff members at all
-        const staffCount = await Staff.countDocuments({});
-        if (staffCount === 0) {
+        // 1. Auto-seed a default General Manager if they don't exist
+        const adminUser = await Staff.findOne({ username: "admin" });
+        if (!adminUser) {
           const hashedPassword = bcrypt.hashSync("password123", 10);
           await Staff.create({
             name: "Admin User",

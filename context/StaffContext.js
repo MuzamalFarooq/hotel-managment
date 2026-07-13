@@ -22,12 +22,6 @@ export const StaffProvider = ({ children }) => {
   const [editingStaff, setEditingStaff] = useState(null);
   const { data: session } = useSession();
 
-  useEffect(() => {
-    if (session?.user?.role === "General Manager") {
-      fetchStaff();
-    }
-  }, [session]);
-
   const fetchStaff = async () => {
     try {
       const res = await fetch("/api/staff");
@@ -42,6 +36,14 @@ export const StaffProvider = ({ children }) => {
       console.error("Failed to fetch staff:", error);
     }
   };
+
+  useEffect(() => {
+    if (session?.user?.role === "General Manager") {
+      Promise.resolve().then(() => {
+        fetchStaff();
+      });
+    }
+  }, [session]);
 
   const handleAddStaff = async (e) => {
     e.preventDefault();

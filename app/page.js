@@ -742,7 +742,7 @@ export default function LandingPage() {
                     className="bg-white border border-stone-200/80 rounded-2xl flex flex-col overflow-hidden transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-stone-200/50 group"
                   >
                     {/* Top half: Image slider */}
-                    <div className="aspect-[4/3] w-full relative overflow-hidden bg-stone-100">
+                    <div className="aspect-4/3 w-full relative overflow-hidden bg-stone-100">
                       <ImageSlider images={room.images} />
 
                       {/* Floating Room ID Badge */}

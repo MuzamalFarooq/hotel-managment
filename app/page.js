@@ -873,7 +873,7 @@ export default function LandingPage() {
             <div className="overflow-y-auto flex-1 p-6 md:p-8 space-y-6">
               
               {/* Image Slider */}
-              <div className="aspect-[16/9] w-full rounded-xl overflow-hidden relative border border-stone-200">
+              <div className="aspect-video w-full rounded-xl overflow-hidden relative border border-stone-200">
                 <ImageSlider images={detailedRoom.images} />
               </div>
 

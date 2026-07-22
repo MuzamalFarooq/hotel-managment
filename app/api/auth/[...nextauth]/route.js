@@ -35,8 +35,11 @@ export const authOptions = {
           });
         }
 
-        // 2. Find the staff member
-        const user = await Staff.findOne({ username: credentials.username });
+        // 2. Find the staff member (case-insensitive & trimmed)
+        const cleanUsername = credentials.username.trim();
+        const user = await Staff.findOne({
+          username: { $regex: new RegExp("^" + cleanUsername.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "$", "i") }
+        });
         if (!user) {
           throw new Error("Invalid username or password");
         }

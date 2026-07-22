@@ -146,7 +146,7 @@ function ImageSlider({ images }) {
               loading="lazy"
             />
             {/* Dark gradient overlay for a high-end look */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
           </div>
         ))}
       </div>
